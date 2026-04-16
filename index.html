@@ -13,7 +13,7 @@
     color: #2d2d2d;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
-    padding-bottom: 30px;
+    padding-bottom: 70px;
   }
 
   /* ===== 头图 ===== */
@@ -111,6 +111,67 @@
   }
 
   /* 分割线 */
+  /* ===== 收藏引导 ===== */
+  .fav-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease;
+  }
+  .fav-bar.hidden { transform: translateY(100%); }
+  .fav-bar-icon { font-size: 20px; flex-shrink: 0; }
+  .fav-bar-text { font-size: 13px; color: #3d3028; flex: 1; }
+  .fav-bar-text small { display: block; font-size: 11px; color: #9a8d80; margin-top: 1px; }
+  .fav-bar-btn {
+    flex-shrink: 0; padding: 7px 16px;
+    background: linear-gradient(135deg, #f8b500, #f09060);
+    color: #fff; font-size: 13px; font-weight: 600;
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(240,144,96,0.3);
+  }
+  .fav-bar-btn:active { opacity: 0.85; }
+  .fav-bar-close {
+    position: absolute; top: -10px; right: 12px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #e8e0d8; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #9a8d80; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  /* 首次引导蒙层 */
+  .fav-guide {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 300;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: flex-start; justify-content: flex-end;
+    padding: 8px 16px;
+    opacity: 1; transition: opacity 0.4s ease;
+  }
+  .fav-guide.fade-out { opacity: 0; pointer-events: none; }
+  .fav-guide-bubble {
+    background: #fff; border-radius: 14px; padding: 14px 18px;
+    max-width: 260px; margin-top: 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  .fav-guide-bubble::before {
+    content: ''; position: absolute; top: -8px; right: 24px;
+    width: 0; height: 0;
+    border-left: 8px solid transparent; border-right: 8px solid transparent;
+    border-bottom: 8px solid #fff;
+  }
+  .fav-guide-title { font-size: 15px; font-weight: 700; color: #3d3028; }
+  .fav-guide-steps { margin-top: 8px; font-size: 13px; color: #6d6050; line-height: 1.6; }
+  .fav-guide-steps b { color: #f09060; }
+  .fav-guide-dismiss {
+    margin-top: 10px; width: 100%; padding: 8px;
+    background: linear-gradient(135deg, #f8b500, #f09060);
+    color: #fff; font-size: 13px; font-weight: 600;
+    border: none; border-radius: 10px; cursor: pointer;
+  }
+
   .theme-divider {
     margin: 14px 16px 0;
     border: none;
@@ -203,6 +264,17 @@
 
 <div id="sections"></div>
 
+<!-- 底部收藏浮动条 -->
+<div class="fav-bar" id="fav-bar">
+  <button class="fav-bar-close" id="fav-bar-close">&times;</button>
+  <span class="fav-bar-icon">⭐</span>
+  <div class="fav-bar-text">
+    收藏本页，随时查看优质绘本内容
+    <small>点击右上角 ··· 即可收藏</small>
+  </div>
+  <button class="fav-bar-btn" id="fav-bar-btn">去收藏</button>
+</div>
+
 <script src="theme_data.js"></script>
 <script>
 const THEME_ORDER=['goodnight','family','habit','social','emotion','self'];
@@ -291,6 +363,79 @@ function fixVerticalCovers(){
 window.addEventListener('load', fixVerticalCovers);
 setTimeout(fixVerticalCovers, 2000);
 setTimeout(fixVerticalCovers, 5000);
+
+// ===== 收藏引导 =====
+(function(){
+  const FAV_KEY = 'pb_fav_dismissed';
+  const GUIDE_KEY = 'pb_guide_shown';
+  const bar = document.getElementById('fav-bar');
+  const closeBtn = document.getElementById('fav-bar-close');
+  const favBtn = document.getElementById('fav-bar-btn');
+
+  // 已关闭过则隐藏底部条
+  if(localStorage.getItem(FAV_KEY)){
+    bar.classList.add('hidden');
+  }
+
+  // 关闭底部条
+  closeBtn.addEventListener('click', function(){
+    bar.classList.add('hidden');
+    localStorage.setItem(FAV_KEY, '1');
+  });
+
+  // 点击"去收藏"弹出引导
+  favBtn.addEventListener('click', function(){
+    showGuide();
+  });
+
+  // 首次访问自动弹引导
+  if(!localStorage.getItem(GUIDE_KEY)){
+    setTimeout(function(){ showGuide(); }, 1500);
+    localStorage.setItem(GUIDE_KEY, '1');
+  }
+
+  function showGuide(){
+    // 检测环境
+    var ua = navigator.userAgent.toLowerCase();
+    var isWechat = ua.indexOf('micromessenger') > -1 || ua.indexOf('wxwork') > -1;
+    var steps = isWechat
+      ? '点击右上角 <b>···</b> 按钮<br>选择 <b>「收藏」</b> 即可'
+      : '点击浏览器右上角 <b>···</b> 或 <b>分享</b> 按钮<br>选择 <b>「添加书签」</b> 或 <b>「收藏」</b>';
+
+    var guide = document.createElement('div');
+    guide.className = 'fav-guide';
+    guide.innerHTML =
+      '<div class="fav-guide-bubble">' +
+        '<div class="fav-guide-title">⭐ 收藏本页</div>' +
+        '<div class="fav-guide-steps">' + steps + '</div>' +
+        '<button class="fav-guide-dismiss">知道了</button>' +
+      '</div>';
+
+    document.body.appendChild(guide);
+
+    // 点击关闭
+    guide.querySelector('.fav-guide-dismiss').addEventListener('click', function(){
+      guide.classList.add('fade-out');
+      setTimeout(function(){ guide.remove(); }, 400);
+    });
+
+    // 点蒙层也关闭
+    guide.addEventListener('click', function(e){
+      if(e.target === guide){
+        guide.classList.add('fade-out');
+        setTimeout(function(){ guide.remove(); }, 400);
+      }
+    });
+
+    // 5秒自动消失
+    setTimeout(function(){
+      if(document.body.contains(guide)){
+        guide.classList.add('fade-out');
+        setTimeout(function(){ guide.remove(); }, 400);
+      }
+    }, 5000);
+  }
+})();
 </script>
 </body>
 </html>
