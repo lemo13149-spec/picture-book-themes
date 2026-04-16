@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="referrer" content="no-referrer">
+<title>绘本故事主题页</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f0ebe3;
+    color: #2d2d2d;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding-bottom: 30px;
+  }
+
+  /* ===== 头图 ===== */
+  .hero { position: relative; width: 100%; height: 260px; overflow: hidden; }
+  .hero svg { width: 100%; height: 100%; display: block; }
+  .hero-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 60px 20px 20px;
+    background: linear-gradient(transparent, rgba(180,100,70,0.5));
+  }
+  .hero-title { font-size: 26px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(100,50,30,0.4); }
+  .hero-sub { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.7); }
+  .hero-tags { display: flex; gap: 10px; margin-top: 12px; }
+  .hero-tag {
+    padding: 4px 14px; background: rgba(255,255,255,0.12); border-radius: 20px;
+    font-size: 12px; color: rgba(255,255,255,0.85); backdrop-filter: blur(6px);
+  }
+  .hero-tag b { font-weight: 700; }
+
+  /* ===== 主题模块 ===== */
+  .theme-section {
+    margin: 16px 0 0;
+    padding: 0 16px;
+  }
+  .theme-header { display: flex; align-items: center; padding: 0 0 10px; }
+  .theme-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; margin-right: 10px; flex-shrink: 0;
+  }
+  .theme-info { flex: 1; min-width: 0; }
+  .theme-name { font-size: 15px; font-weight: 600; color: #3d3028; }
+  .theme-desc {
+    font-size: 11px; color: #9a8d80; margin-top: 1px;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .theme-more-btn {
+    font-size: 11px; color: #9a8d80; text-decoration: none;
+    display: flex; align-items: center; flex-shrink: 0; margin-left: 6px;
+  }
+  .theme-more-btn svg { width: 14px; height: 14px; stroke: #9a8d80; fill: none; stroke-width: 2; margin-left: 2px; }
+  .theme-more-btn:active { color: #6d5f50; }
+
+  /* 横滑列表 - 不在 overflow:hidden 容器内 */
+  .theme-cards {
+    display: flex; gap: 10px;
+    padding-bottom: 6px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .theme-cards::-webkit-scrollbar { display: none; }
+
+  .mini-card {
+    flex-shrink: 0; width: 135px; scroll-snap-align: start;
+    text-decoration: none; color: inherit; display: block;
+  }
+  .mini-cover {
+    position: relative; width: 135px; height: 0; padding-top: 62.5%;
+    border-radius: 10px 10px 0 0; overflow: hidden; background: #2a2520;
+  }
+  .mini-cover img {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .mini-cover img.vertical {
+    object-fit: contain;
+  }
+  .mini-cover::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.55)); pointer-events: none;
+  }
+  .mini-views {
+    position: absolute; bottom: 3px; left: 6px; z-index: 2;
+    display: flex; align-items: center;
+    color: #fff; font-size: 9px; font-weight: 500;
+  }
+  .mini-views svg { width: 10px; height: 10px; fill: #fff; margin-right: 2px; opacity: 0.85; }
+  .mini-duration {
+    position: absolute; bottom: 3px; right: 6px; z-index: 2;
+    color: #fff; font-size: 9px; font-weight: 500;
+  }
+  .mini-badge {
+    position: absolute; top: 4px; left: 4px; z-index: 2;
+    padding: 1px 5px; background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: #fff; font-size: 8px; font-weight: 600; border-radius: 3px;
+  }
+  .mini-title {
+    margin-top: 6px; font-size: 12px; font-weight: 500; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; color: #3d3028;
+  }
+  .mini-up {
+    margin-top: 4px; font-size: 10px; color: #9a8d80;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+
+  /* 分割线 */
+  .theme-divider {
+    margin: 14px 16px 0;
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fceabb"/>
+        <stop offset="30%" stop-color="#f8b500"/>
+        <stop offset="60%" stop-color="#f09060"/>
+        <stop offset="100%" stop-color="#d4725e"/>
+      </linearGradient>
+    </defs>
+    <rect fill="url(#sky)" width="400" height="260"/>
+
+    <!-- 云朵 -->
+    <ellipse cx="60" cy="40" rx="30" ry="14" fill="#fff" opacity="0.35"/>
+    <ellipse cx="45" cy="38" rx="18" ry="10" fill="#fff" opacity="0.3"/>
+    <ellipse cx="80" cy="38" rx="16" ry="9" fill="#fff" opacity="0.25"/>
+
+    <ellipse cx="300" cy="55" rx="25" ry="12" fill="#fff" opacity="0.3"/>
+    <ellipse cx="285" cy="53" rx="15" ry="9" fill="#fff" opacity="0.25"/>
+    <ellipse cx="320" cy="54" rx="14" ry="8" fill="#fff" opacity="0.2"/>
+
+    <ellipse cx="180" cy="28" rx="20" ry="10" fill="#fff" opacity="0.2"/>
+
+    <!-- 太阳 -->
+    <circle cx="340" cy="50" r="30" fill="#fdd835" opacity="0.5"/>
+    <circle cx="340" cy="50" r="22" fill="#ffe082" opacity="0.6"/>
+    <circle cx="340" cy="50" r="38" fill="none" stroke="#fdd835" stroke-width="0.8" opacity="0.2"/>
+
+    <!-- 远山 -->
+    <path d="M0 185 Q45 155 95 168 Q145 142 195 162 Q245 148 295 160 Q345 138 400 155 L400 260 L0 260Z" fill="#d4725e" opacity="0.4"/>
+    <path d="M0 198 Q55 175 115 188 Q175 168 235 182 Q295 165 355 178 L400 174 L400 260 L0 260Z" fill="#c4654e" opacity="0.3"/>
+
+    <!-- 小屋 -->
+    <rect x="48" y="185" width="38" height="30" rx="2" fill="#b85a48" opacity="0.5"/>
+    <polygon points="43,187 67,165 91,187" fill="#c96a55" opacity="0.5"/>
+    <rect x="57" y="192" width="8" height="8" rx="1" fill="#fff" opacity="0.5"/>
+    <rect x="69" y="193" width="5" height="5" rx="0.5" fill="#fff" opacity="0.3"/>
+    <rect x="74" y="170" width="5" height="17" fill="#c96a55" opacity="0.4"/>
+
+    <!-- 书堆 -->
+    <g transform="translate(145,192)">
+      <rect x="0" y="12" width="28" height="5" rx="1" fill="#e57373" opacity="0.6"/>
+      <rect x="2" y="7" width="26" height="5" rx="1" fill="#81c784" opacity="0.6"/>
+      <rect x="1" y="2" width="24" height="5" rx="1" fill="#64b5f6" opacity="0.6"/>
+      <rect x="4" y="-2" width="18" height="4" rx="1" fill="#ce93d8" opacity="0.5"/>
+    </g>
+
+    <!-- 小兔子 -->
+    <g transform="translate(205,180)">
+      <ellipse cx="15" cy="20" rx="13" ry="10" fill="#fff" opacity="0.8"/>
+      <circle cx="5" cy="12" r="9" fill="#fff" opacity="0.8"/>
+      <ellipse cx="-2" cy="-2" rx="3.5" ry="11" fill="#fff" opacity="0.8" transform="rotate(-15,-2,-2)"/>
+      <ellipse cx="-2" cy="-2" rx="2" ry="7" fill="#f8bbd0" transform="rotate(-15,-2,-2)" opacity="0.5"/>
+      <ellipse cx="11" cy="-4" rx="3.5" ry="11" fill="#fff" opacity="0.8" transform="rotate(10,11,-4)"/>
+      <ellipse cx="11" cy="-4" rx="2" ry="7" fill="#f8bbd0" transform="rotate(10,11,-4)" opacity="0.5"/>
+      <ellipse cx="17" cy="21" rx="8" ry="6" fill="#fce4ec" opacity="0.6"/>
+      <path d="M1 12 Q4 14 7 12" fill="none" stroke="#999" stroke-width="0.9" stroke-linecap="round"/>
+      <ellipse cx="2" cy="15" rx="1.8" ry="1.3" fill="#f48fb1"/>
+      <path d="M7 15 Q14 10 29 16 Q31 22 29 27 Q14 30 7 24Z" fill="#b39ddb" opacity="0.45"/>
+      <text x="31" y="5" fill="#fff" opacity="0.5" font-size="6" font-family="sans-serif">z</text>
+      <text x="35" y="0" fill="#fff" opacity="0.4" font-size="5" font-family="sans-serif">z</text>
+      <text x="38" y="-4" fill="#fff" opacity="0.3" font-size="4" font-family="sans-serif">z</text>
+    </g>
+
+    <!-- 大树 -->
+    <rect x="305" y="185" width="5" height="28" fill="#a05540" opacity="0.5"/>
+    <circle cx="308" cy="175" r="16" fill="#81c784" opacity="0.4"/>
+    <circle cx="298" cy="180" r="10" fill="#66bb6a" opacity="0.35"/>
+    <circle cx="316" cy="178" r="11" fill="#81c784" opacity="0.35"/>
+
+    <!-- 近景过渡 -->
+    <path d="M0 215 Q95 202 200 210 Q310 200 400 207 L400 260 L0 260Z" fill="#e8ddd0" opacity="0.6"/>
+    <path d="M0 230 Q100 222 200 228 Q300 220 400 226 L400 260 L0 260Z" fill="#f0ebe3"/>
+  </svg>
+  <div class="hero-overlay">
+    <div class="hero-title">📖 绘本故事</div>
+    <div class="hero-sub">精选优质绘本内容，陪伴宝贝每一步成长</div>
+    <div class="hero-tags" id="hero-tags"></div>
+  </div>
+</div>
+
+<div id="sections"></div>
+
+<script src="theme_data.js"></script>
+<script>
+const THEME_ORDER=['goodnight','family','habit','social','emotion','self'];
+const THEME_EMOJIS={goodnight:'🌙',family:'🏠',habit:'⭐',social:'🤝',emotion:'💜',self:'🌈'};
+const THEME_BG={
+  goodnight:'linear-gradient(135deg,#5b7db8,#8eaad6)',
+  family:'linear-gradient(135deg,#c49358,#dbb78a)',
+  habit:'linear-gradient(135deg,#66bb6a,#a5d6a7)',
+  social:'linear-gradient(135deg,#7986cb,#9fa8da)',
+  emotion:'linear-gradient(135deg,#ba68c8,#ce93d8)',
+  self:'linear-gradient(135deg,#ef5350,#ef9a9a)'
+};
+const AVATARS=['\ud83d\udc30','\ud83d\udc3b','\ud83d\udc31','\ud83e\udd8a','\ud83d\udc3c','\ud83d\udc28','\ud83d\udc36','\ud83d\udc2f','\ud83e\udd81','\ud83d\udc2e','\ud83d\udc37','\ud83d\udc38','\ud83d\udc19','\ud83e\udd84','\ud83d\udc1d','\ud83d\udc27','\ud83d\udc39','\ud83d\udc23'];
+
+function hashCode(s){let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h+s.charCodeAt(i))|0;return h;}
+function getAvatar(n){return AVATARS[Math.abs(hashCode(n))%AVATARS.length];}
+function fmtViews(n){return n>=10000?(n/10000).toFixed(1)+'万':n>=1000?(n/1000).toFixed(1)+'千':n.toString();}
+// 图片加载后检测竖图
+function checkVertical(img){
+  img.onload=function(){
+    if(this.naturalHeight > this.naturalWidth * 1.1){
+      this.classList.add('vertical');
+    }
+  };
+}
+function mockCover(title,colors){
+  const c=colors||['#333','#555'];
+  const i=Math.abs(hashCode(title))%c.length;
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="270" height="152"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:${c[i]}"/><stop offset="100%" style="stop-color:${c[(i+1)%c.length]}"/></linearGradient></defs><rect fill="url(#g)" width="270" height="152" rx="4"/></svg>`)}`;
+}
+
+let totalArticles=0;
+THEME_ORDER.forEach(k=>totalArticles+=THEME_DATA[k].articles.length);
+document.getElementById('hero-tags').innerHTML=
+  `<span class="hero-tag"><b>6</b> 个主题</span><span class="hero-tag"><b>${totalArticles}</b> 个稿件</span>`;
+
+const container=document.getElementById('sections');
+THEME_ORDER.forEach((key,idx)=>{
+  const theme=THEME_DATA[key];
+  const emoji=THEME_EMOJIS[key];
+  const bg=THEME_BG[key];
+  const preview=theme.articles.slice(0,4);
+
+  let cardsHtml='';
+  preview.forEach(item=>{
+    const cover=item.cover||mockCover(item.title,theme.color);
+    const badge=item.is_collection?`<span class="mini-badge">合集</span>`:'';
+    cardsHtml+=`
+      <a class="mini-card" href="${item.url}" target="_blank">
+        <div class="mini-cover">
+          <img src="${cover}" loading="lazy">
+          ${badge}
+          <span class="mini-views"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>${fmtViews(item.views)}</span>
+          <span class="mini-duration">${item.duration}</span>
+        </div>
+        <div class="mini-title">${item.title}</div>
+        <div class="mini-up">${getAvatar(item.up_name)} ${item.up_name}</div>
+      </a>`;
+  });
+
+  const divider=idx<THEME_ORDER.length-1?'<hr class="theme-divider">':'';
+
+  container.innerHTML+=`
+    <div class="theme-section">
+      <div class="theme-header">
+        <div class="theme-icon" style="background:${bg}">${emoji}</div>
+        <div class="theme-info">
+          <div class="theme-name">${theme.title}</div>
+          <div class="theme-desc">${theme.subtitle}</div>
+        </div>
+        <a class="theme-more-btn" href="theme_page.html?theme=${key}">
+          更多<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+      </div>
+      <div class="theme-cards">${cardsHtml}</div>
+    </div>${divider}`;
+});
+// 竖图检测：页面加载完 + 定时兜底
+function fixVerticalCovers(){
+  document.querySelectorAll('.mini-cover img').forEach(function(img){
+    if(img.naturalWidth>0 && img.naturalHeight>img.naturalWidth*1.1){
+      img.classList.add('vertical');
+    }
+  });
+}
+window.addEventListener('load', fixVerticalCovers);
+setTimeout(fixVerticalCovers, 2000);
+setTimeout(fixVerticalCovers, 5000);
+</script>
+</body>
+</html>
